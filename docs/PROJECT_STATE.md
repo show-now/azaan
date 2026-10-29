@@ -53,7 +53,8 @@
 ## 4. Recent Commits
 - `782a481`: `feat: implement data generation, validation, models, warnings, and evaluation`
 - `3f6bf00`: `feat: build multi-page Streamlit dashboard and UI views`
-- Ready for documentation and final milestone commit.
+- `a1a249e`: `docs: complete full documentation suite and update project state`
+- `4c3e30e`: `fix: extract predictor features before leakage check in predict_batch`
 
 ## 5. Known Issues & Blockers
 - None. System is fully functional, self-contained, and ready for local academic demonstration.
