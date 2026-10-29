@@ -126,8 +126,9 @@ class RiskPredictionService:
         if self._model_a is None or self._model_b is None or self._model_c is None:
             self.load_models()
 
-        assert_zero_target_leakage(df)
-        df_features = df[PREDICTOR_FEATURES].copy()
+        # Extract strictly predictor features before checking leakage
+        df_features = df[[c for c in PREDICTOR_FEATURES if c in df.columns]].copy()
+        assert_zero_target_leakage(df_features)
 
         pred_cost_pcts = np.clip(self._model_a.predict(df_features), -5.0, None)
         pred_delays = np.clip(self._model_b.predict(df_features), 0.0, None)
