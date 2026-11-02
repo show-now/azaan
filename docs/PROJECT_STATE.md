@@ -1,54 +1,55 @@
 # Project State: AI-Powered Infrastructure Risk Early Warning System
 
 ## 1. Current Phase
-- **Phase**: Complete (Production-Ready Academic Demonstration Prototype)
-- **Date**: 2026-10-29
+- **Phase**: Complete (Vite/React Frontend + FastAPI Backend Architecture)
+- **Date**: 2026-11-02
 
 ## 2. Features Completed
 - [x] Initial repository structure and directory scaffolding created.
 - [x] Modern Python 3.13 virtual environment initialized with pinned dependencies.
 - [x] Configuration module `src/infrastructure_risk/config.py` defining MoSPI categories, thresholds, and target anti-leakage lists.
-- [x] Reproducible synthetic dataset generator `src/infrastructure_risk/data/generator.py` with multi-factor noise, realistic cost/duration distributions, and fixed seeds.
+- [x] Reproducible synthetic dataset generator `src/infrastructure_risk/data/generator.py` with multi-factor noise, realistic cost/duration distributions, fixed seed (42), and scaled to 2,000 projects with a 10% cost overrun threshold.
 - [x] Schema and data validation engine `src/infrastructure_risk/data/validation.py` using Pydantic and explicit target leakage assertion.
 - [x] Data ingestion service `src/infrastructure_risk/data/loader.py` with caching and automated dataset provisioning.
 - [x] Feature preprocessing pipeline `src/infrastructure_risk/features.py` handling numeric scaling, median imputation, and unseen categorical levels gracefully.
 - [x] Machine Learning training workflow `src/infrastructure_risk/models/training.py` training:
-  - Model A: Cost Overrun Regressor (MAE: 5.23%, R²: 0.615)
-  - Model B: Schedule Delay Regressor (MAE: 3.53 Months, R²: 0.661)
-  - Model C: Cost Overrun Classifier (Accuracy: 89.2%, ROC-AUC: 0.932)
+  - Model A: Cost Overrun Regressor
+  - Model B: Schedule Delay Regressor
+  - Model C: Cost Overrun Classifier
 - [x] Persistent model serialization with Joblib into `artifacts/models/` and metrics logging in `artifacts/metrics/`.
 - [x] Inference engine `src/infrastructure_risk/models/prediction.py` serving single and batch predictions.
 - [x] Performance evaluation module `src/infrastructure_risk/models/evaluation.py` comparing against dummy/mean and majority baselines.
 - [x] Transparent rule-based early warning engine `src/infrastructure_risk/warnings/rules.py` and executive explanation generator `src/infrastructure_risk/warnings/explanations.py`.
-- [x] Reusable Plotly visualizations `src/infrastructure_risk/visualization/charts.py`.
-- [x] Interactive multi-page Streamlit web application:
-  - `app.py`: Gateway & system readiness check.
-  - `pages/1_Project_Overview.py`: Portfolio macros, sector summaries, and slippage scatter plots.
-  - `pages/2_Project_Explorer.py`: Multi-filter query tool and CSV export.
-  - `pages/3_Risk_Prediction.py`: Interactive single-project risk calculator and early warning diagnosis.
-  - `pages/4_Early_Warnings.py`: Portfolio audit log and severity alerts.
-  - `pages/5_Model_Evaluation.py`: Model benchmarks, actual-vs-predicted charts, and confusion matrix.
-- [x] Automated test suite in `tests/` with 13 passing unit and integration tests.
-- [x] Complete documentation suite:
-  - `AGENTS.md`
-  - `README.md`
-  - `docs/PROJECT_STATE.md`
-  - `docs/ARCHITECTURE.md`
-  - `docs/DECISIONS.md`
-  - `docs/DATA_DICTIONARY.md`
-  - `docs/MODEL_CARD.md`
-  - `docs/TESTING.md`
-  - `docs/USER_GUIDE.md`
-  - `docs/DEVELOPER_GUIDE.md`
-  - `docs/DEPLOYMENT.md`
-  - `docs/TROUBLESHOOTING.md`
-  - `docs/CHANGELOG.md`
+- [x] FastAPI REST Backend (`backend/main.py`) running on port 8001 serving 5 core API routes:
+  - `/api/portfolio/overview`: KPIs, sector outlays, progress vs delay scatter, and state distributions.
+  - `/api/projects`: Multi-factor search, progress filter, and pagination.
+  - `/api/predict`: Real-time multi-model inference (A, B, C) and rule audit generation.
+  - `/api/warnings`: Audit feed of all early warning flags across the portfolio.
+  - `/api/model-evaluation`: Held-out validation benchmarks and actual-vs-predicted samples.
+- [x] Production-grade Vite/React + TypeScript + Tailwind CSS Frontend (`frontend/`) on port 3000:
+  - Single-analyst workflow without login barriers.
+  - Tab 1: Portfolio Overview with Recharts bar and scatter charts.
+  - Tab 2: Project Explorer with interactive filters, pagination, and CSV download.
+  - Tab 3: Risk Prediction Calculator with multi-indicator inputs and diagnostic recommendations.
+  - Tab 4: Early Warnings Audit Feed with severity toggles and rule filters.
+  - Tab 5: Model Evaluation dashboard with Model A, B, and C metric comparisons.
+- [x] Streamlit alternative multi-page web application preserved (`app.py`, `pages/`).
+- [x] Natural Disaster Simulation & Resilience Engineering Engine (`src/infrastructure_risk/warnings/simulation.py`):
+  - Multi-hazard modeling: Flood / Cloudburst, Earthquake / Seismic Tremor, Cyclone / Storm Surge, Landslide / Debris Flow, Extreme Heatwave & Drought.
+  - Sector-specific vulnerability matrix (e.g. Ports vs. Cyclones, Roads/Railways vs. Landslides & Floods).
+  - Geographical regional hazard multipliers based on Indian disaster exposure (Odisha/Andhra cyclones, Himalayan seismicity, flood plains).
+  - Construction stage impact curve (raw formwork & excavation peak vulnerability midway).
+  - Quantitative physical damage %, remediation outlays (₹ Cr), and added timeline delay (Months).
+  - Categorized engineering precautions (Site Planning & Hydrology, Structural & Materials, Active Site Operations) aligned with BIS standards (IS 1893, IS 875, IRC).
+  - New API endpoint `POST /api/simulate-disaster` in `backend/main.py`.
+  - Interactive Tab 6 dashboard view `DisasterSimulationView.tsx` with real-time parameter tweaking.
+- [x] Automated test suite in `tests/` with 21 passing unit and integration tests (including disaster simulation test).
 
 ## 3. Verified Test & Lint Results
-- **pytest**: 13 passed in 2.32s (`100%` pass rate).
+- **pytest**: 21 passed in 4.27s (`100%` pass rate).
 - **ruff**: All checks passed cleanly with zero warnings (`ruff check .`).
-- **compileall**: All Python bytecode files successfully compiled without syntax errors.
-- **Streamlit smoke test**: Successfully started on port 8501 without startup errors.
+- **Frontend build**: `npm run build` compiled without errors.
+- **FastAPI backend**: Successfully serving requests on `:8001` with reload enabled.
 
 ## 4. Recent Commits
 - `782a481`: `feat: implement data generation, validation, models, warnings, and evaluation`
