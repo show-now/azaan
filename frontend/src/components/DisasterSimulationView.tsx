@@ -179,8 +179,8 @@ export const DisasterSimulationView: React.FC = () => {
                 <label className="block text-slate-300 font-medium mb-1">Sanctioned Cost (₹ Cr)</label>
                 <input
                   type="number"
-                  min="1"
-                  step="25"
+                  min="0.1"
+                  step="any"
                   value={formData.original_cost}
                   onChange={(e) => handleChange('original_cost', parseFloat(e.target.value) || 0)}
                   className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:ring-1 focus:ring-indigo-500"
@@ -193,7 +193,7 @@ export const DisasterSimulationView: React.FC = () => {
                 <input
                   type="number"
                   min="1"
-                  step="1"
+                  step="any"
                   value={formData.planned_duration_months}
                   onChange={(e) => handleChange('planned_duration_months', parseInt(e.target.value) || 0)}
                   className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:ring-1 focus:ring-indigo-500"
