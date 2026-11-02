@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { fetchMetadata, fetchProjects } from '../api';
+import { fetchMetadata, fetchProjects, createProject } from '../api';
 import { MetadataResponse, ProjectRecord } from '../types';
 import { 
   Search, 
@@ -7,11 +7,10 @@ import {
   Download, 
   ChevronLeft, 
   ChevronRight, 
-  Layers, 
-  ShieldAlert,
-  Percent,
-  Calendar,
-  IndianRupee
+  PlusCircle,
+  X,
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react';
 
 export const ProjectExplorerView: React.FC = () => {
@@ -27,6 +26,28 @@ export const ProjectExplorerView: React.FC = () => {
   const [selectedRisk, setSelectedRisk] = useState<string[]>([]);
   const [minProgress, setMinProgress] = useState(0);
   const [maxProgress, setMaxProgress] = useState(100);
+
+  // New Project Modal State
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [formSuccess, setFormSuccess] = useState<string | null>(null);
+
+  const [newProject, setNewProject] = useState({
+    project_id: '',
+    project_name: '',
+    sector: 'Roads & Highways',
+    state: 'Maharashtra',
+    original_cost: 500.0,
+    planned_duration_months: 36,
+    elapsed_months: 6.0,
+    physical_progress_pct: 15.0,
+    land_acquisition_pct: 80.0,
+    approval_delay_months: 1.0,
+    funding_risk: 'Low',
+    contractor_changes: 0,
+    material_inflation_pct: 5.0,
+  });
 
   // Pagination
   const [page, setPage] = useState(0);
@@ -67,6 +88,41 @@ export const ProjectExplorerView: React.FC = () => {
     e.preventDefault();
     setPage(0);
     loadData();
+  };
+
+  const handleCreateSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setFormError(null);
+    setFormSuccess(null);
+    try {
+      const res = await createProject(newProject);
+      setFormSuccess(res.message);
+      loadData();
+      setTimeout(() => {
+        setShowAddModal(false);
+        setFormSuccess(null);
+        setNewProject({
+          project_id: '',
+          project_name: '',
+          sector: 'Roads & Highways',
+          state: 'Maharashtra',
+          original_cost: 500.0,
+          planned_duration_months: 36,
+          elapsed_months: 6.0,
+          physical_progress_pct: 15.0,
+          land_acquisition_pct: 80.0,
+          approval_delay_months: 1.0,
+          funding_risk: 'Low',
+          contractor_changes: 0,
+          material_inflation_pct: 5.0,
+        });
+      }, 1200);
+    } catch (err: any) {
+      setFormError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleExportCSV = () => {
@@ -119,13 +175,22 @@ export const ProjectExplorerView: React.FC = () => {
             Search, filter, inspect indicators, and download records across monitored infrastructure investments.
           </p>
         </div>
-        <button
-          onClick={handleExportCSV}
-          className="flex items-center space-x-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-lg border border-slate-700 text-xs font-semibold shadow-sm transition"
-        >
-          <Download className="w-4 h-4 text-indigo-400" />
-          <span>Export Current View (CSV)</span>
-        </button>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold shadow-md shadow-indigo-600/30 transition"
+          >
+            <PlusCircle className="w-4 h-4" />
+            <span>Add New Project</span>
+          </button>
+          <button
+            onClick={handleExportCSV}
+            className="flex items-center space-x-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-lg border border-slate-700 text-xs font-semibold shadow-sm transition"
+          >
+            <Download className="w-4 h-4 text-indigo-400" />
+            <span>Export View (CSV)</span>
+          </button>
+        </div>
       </div>
 
       {/* Main Layout: Left Filters, Right Table */}
@@ -365,6 +430,217 @@ export const ProjectExplorerView: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Add Project Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl p-6 shadow-2xl space-y-5 my-8">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center space-x-2">
+                <PlusCircle className="w-5 h-5 text-indigo-400" />
+                <h2 className="text-base font-bold text-white">Add New Infrastructure Project</h2>
+              </div>
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {formError && (
+              <div className="p-3 bg-rose-950/60 border border-rose-800 rounded-lg text-xs text-rose-300 flex items-center space-x-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{formError}</span>
+              </div>
+            )}
+
+            {formSuccess && (
+              <div className="p-3 bg-emerald-950/60 border border-emerald-800 rounded-lg text-xs text-emerald-300 flex items-center space-x-2">
+                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                <span>{formSuccess}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleCreateSubmit} className="space-y-4 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-300 font-medium mb-1">Project ID (Optional)</label>
+                  <input
+                    type="text"
+                    placeholder="Auto-generated if blank (e.g. PRJ-IN-03001)"
+                    value={newProject.project_id}
+                    onChange={(e) => setNewProject({ ...newProject, project_id: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:ring-1 focus:ring-indigo-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-300 font-medium mb-1">Project Name / Corridor *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. NH-Expwy Eastern Bypass Phase 2"
+                    value={newProject.project_name}
+                    onChange={(e) => setNewProject({ ...newProject, project_name: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:ring-1 focus:ring-indigo-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-300 font-medium mb-1">Sector *</label>
+                  <select
+                    value={newProject.sector}
+                    onChange={(e) => setNewProject({ ...newProject, sector: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:ring-1 focus:ring-indigo-500"
+                  >
+                    {meta?.sectors.map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-slate-300 font-medium mb-1">State / UT *</label>
+                  <select
+                    value={newProject.state}
+                    onChange={(e) => setNewProject({ ...newProject, state: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:ring-1 focus:ring-indigo-500"
+                  >
+                    {meta?.states.map((st) => (
+                      <option key={st} value={st}>{st}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-slate-300 font-medium mb-1">Sanctioned Cost (₹ Cr) *</label>
+                  <input
+                    type="number"
+                    min="0.1"
+                    step="any"
+                    required
+                    value={newProject.original_cost}
+                    onChange={(e) => setNewProject({ ...newProject, original_cost: parseFloat(e.target.value) || 0 })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:ring-1 focus:ring-indigo-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-300 font-medium mb-1">Scheduled Timeline (Months) *</label>
+                  <input
+                    type="number"
+                    min="1"
+                    step="any"
+                    required
+                    value={newProject.planned_duration_months}
+                    onChange={(e) => setNewProject({ ...newProject, planned_duration_months: parseInt(e.target.value) || 0 })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:ring-1 focus:ring-indigo-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-300 font-medium mb-1">Elapsed Time (Months)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="any"
+                    value={newProject.elapsed_months}
+                    onChange={(e) => setNewProject({ ...newProject, elapsed_months: parseFloat(e.target.value) || 0 })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:ring-1 focus:ring-indigo-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-300 font-medium mb-1">Clearance / Approval Delay (Months)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="any"
+                    value={newProject.approval_delay_months}
+                    onChange={(e) => setNewProject({ ...newProject, approval_delay_months: parseFloat(e.target.value) || 0 })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:ring-1 focus:ring-indigo-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-300 font-medium mb-1">Physical Progress (%)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="any"
+                    value={newProject.physical_progress_pct}
+                    onChange={(e) => setNewProject({ ...newProject, physical_progress_pct: parseFloat(e.target.value) || 0 })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:ring-1 focus:ring-indigo-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-300 font-medium mb-1">Land Acquisition Progress (%)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="any"
+                    value={newProject.land_acquisition_pct}
+                    onChange={(e) => setNewProject({ ...newProject, land_acquisition_pct: parseFloat(e.target.value) || 0 })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:ring-1 focus:ring-indigo-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-300 font-medium mb-1">Funding Risk Rating</label>
+                  <select
+                    value={newProject.funding_risk}
+                    onChange={(e) => setNewProject({ ...newProject, funding_risk: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:ring-1 focus:ring-indigo-500"
+                  >
+                    {['Low', 'Medium', 'High'].map((r) => (
+                      <option key={r} value={r}>{r}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-slate-300 font-medium mb-1">Contractor Replacements</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="10"
+                    step="1"
+                    value={newProject.contractor_changes}
+                    onChange={(e) => setNewProject({ ...newProject, contractor_changes: parseInt(e.target.value) || 0 })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:ring-1 focus:ring-indigo-500"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end space-x-3 pt-3 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg text-xs font-semibold shadow-md shadow-indigo-600/30 flex items-center space-x-1.5 transition"
+                >
+                  {submitting ? (
+                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <PlusCircle className="w-4 h-4" />
+                  )}
+                  <span>Register & Save Project</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

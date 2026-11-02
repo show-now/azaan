@@ -348,26 +348,28 @@ export const RiskPredictionView: React.FC = () => {
                     <span>3. Executive Early Warning Diagnosis</span>
                   </h3>
                   <span className="text-xs font-mono text-slate-400">
-                    {result.early_warnings.length} Active Rules Triggered
+                    {result.early_warnings?.length || 0} Active Rules Triggered
                   </span>
                 </div>
 
                 <div className="p-3 bg-slate-950/70 border border-slate-800 rounded-lg">
-                  <div className="text-xs font-bold text-white">{result.executive_summary.status}</div>
-                  <div className="text-xs text-slate-300 mt-1">{result.executive_summary.headline}</div>
+                  <div className="text-xs font-bold text-white">{result.executive_summary?.status || 'Assessed'}</div>
+                  <div className="text-xs text-slate-300 mt-1">{result.executive_summary?.summary_text || ''}</div>
                 </div>
 
-                {/* Audit Findings */}
-                {result.executive_summary.findings.length > 0 && (
+                {/* Audit Findings from early warnings */}
+                {result.early_warnings && result.early_warnings.length > 0 && (
                   <div>
                     <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
                       Key Root Causes Detected
                     </h4>
                     <ul className="space-y-1.5 text-xs text-slate-400">
-                      {result.executive_summary.findings.map((f, idx) => (
+                      {result.early_warnings.map((w, idx) => (
                         <li key={idx} className="flex items-start space-x-2">
                           <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
-                          <span>{f}</span>
+                          <span>
+                            <strong className="text-slate-200">{w.condition}:</strong> {w.observed_value} ({w.threshold_rule})
+                          </span>
                         </li>
                       ))}
                     </ul>
@@ -375,7 +377,7 @@ export const RiskPredictionView: React.FC = () => {
                 )}
 
                 {/* Recommendations */}
-                {result.executive_summary.recommendations.length > 0 && (
+                {result.executive_summary?.recommendations && result.executive_summary.recommendations.length > 0 && (
                   <div>
                     <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
                       Prescriptive Interventions

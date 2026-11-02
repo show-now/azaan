@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Optional
 import pandas as pd
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
 
 from infrastructure_risk.config import (
     FUNDING_RISK_LEVELS,
@@ -158,8 +159,79 @@ def get_portfolio_overview() -> Dict[str, Any]:
 
 
 # ==========================================
-# Route 2: Project Explorer (/api/projects)
+# Route 2: Project Explorer & Ingestion (/api/projects)
 # ==========================================
+class CreateProjectInput(BaseModel):
+    """Payload to register a new monitored infrastructure project."""
+
+    project_id: Optional[str] = None
+    project_name: str = Field(..., description="Project Title / Corridor Name")
+    sector: str = Field(..., description="Infrastructure Sector")
+    state: str = Field(..., description="State / UT")
+    original_cost: float = Field(..., gt=0.0, description="Sanctioned Baseline (₹ Cr)")
+    planned_duration_months: int = Field(..., gt=0, description="Scheduled Duration (Mo)")
+    elapsed_months: float = Field(0.0, ge=0.0, description="Elapsed Time (Mo)")
+    physical_progress_pct: float = Field(0.0, ge=0.0, le=100.0, description="Physical Progress %")
+    land_acquisition_pct: float = Field(0.0, ge=0.0, le=100.0, description="Land Acquisition %")
+    approval_delay_months: float = Field(0.0, ge=0.0, description="Approval Delays (Mo)")
+    funding_risk: str = Field("Low", description="Low, Medium, or High")
+    contractor_changes: int = Field(0, ge=0, description="Contractor Replacements")
+    material_inflation_pct: float = Field(5.0, description="Observed Material Inflation %")
+
+
+@app.post("/api/projects")
+def add_project(input_data: CreateProjectInput) -> Dict[str, Any]:
+    """Appends a new project record into the monitored infrastructure database."""
+    df = load_or_generate_dataset(n_samples=2000, seed=42)
+
+    # Auto-generate ID if omitted
+    proj_id = input_data.project_id
+    if not proj_id or not proj_id.strip():
+        next_num = len(df) + 1001
+        proj_id = f"PRJ-IN-{next_num:05d}"
+    else:
+        proj_id = proj_id.strip()
+        if proj_id in df["project_id"].values:
+            raise HTTPException(status_code=400, detail=f"Project ID '{proj_id}' already exists.")
+
+    row = {
+        "project_id": proj_id,
+        "project_name": input_data.project_name.strip(),
+        "sector": input_data.sector,
+        "state": input_data.state,
+        "original_cost": float(input_data.original_cost),
+        "planned_duration_months": int(input_data.planned_duration_months),
+        "elapsed_months": float(input_data.elapsed_months),
+        "physical_progress_pct": float(input_data.physical_progress_pct),
+        "land_acquisition_pct": float(input_data.land_acquisition_pct),
+        "approval_delay_months": float(input_data.approval_delay_months),
+        "funding_risk": input_data.funding_risk,
+        "contractor_changes": int(input_data.contractor_changes),
+        "material_inflation_pct": float(input_data.material_inflation_pct),
+    }
+
+    # Automatically derive predicted outcome targets via inference models if available
+    if prediction_service.is_trained():
+        try:
+            pred = prediction_service.predict(row)
+            row["cost_overrun_pct"] = round(pred.predicted_cost_overrun_pct, 2)
+            row["actual_final_cost"] = round(pred.estimated_final_cost, 2)
+            row["actual_delay_months"] = round(pred.predicted_delay_months, 1)
+            row["cost_overrun_flag"] = int(pred.overrun_flag)
+        except Exception:
+            pass
+
+    new_df = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
+    from infrastructure_risk.data.loader import DEFAULT_DATA_FILE
+    new_df.to_csv(DEFAULT_DATA_FILE, index=False)
+
+    return {
+        "status": "success",
+        "message": f"Project {proj_id} registered and persisted successfully.",
+        "project": row,
+    }
+
+
 @app.get("/api/projects")
 def get_projects(
     sector: Optional[List[str]] = None,

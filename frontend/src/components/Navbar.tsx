@@ -5,7 +5,6 @@ import {
   Calculator, 
   AlertTriangle, 
   LineChart, 
-  ShieldCheck, 
   Activity,
   Flame
 } from 'lucide-react';
@@ -71,15 +70,6 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onTabChange }) => {
               );
             })}
           </nav>
-
-          {/* Analyst Status Badge */}
-          <div className="flex items-center space-x-2 text-xs text-slate-400">
-            <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
-            <span className="flex items-center font-medium text-slate-300">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 mr-1" />
-              Single Analyst Session
-            </span>
-          </div>
         </div>
       </div>
     </header>

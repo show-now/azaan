@@ -104,13 +104,12 @@ export interface EarlyWarningAlert {
 
 export interface ExecutiveSummary {
   status: string;
-  severity_color: string;
-  headline: string;
-  total_active_alerts: number;
+  total_alerts: number;
   high_severity_count: number;
   medium_severity_count: number;
-  findings: string[];
+  summary_text: string;
   recommendations: string[];
+  findings?: string[];
 }
 
 export interface PredictionApiResponse {

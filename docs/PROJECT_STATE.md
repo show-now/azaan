@@ -43,10 +43,14 @@
   - Categorized engineering precautions (Site Planning & Hydrology, Structural & Materials, Active Site Operations) aligned with BIS standards (IS 1893, IS 875, IRC).
   - New API endpoint `POST /api/simulate-disaster` in `backend/main.py`.
   - Interactive Tab 6 dashboard view `DisasterSimulationView.tsx` with real-time parameter tweaking.
-- [x] Automated test suite in `tests/` with 21 passing unit and integration tests (including disaster simulation test).
+- [x] Project Registration & Ingestion Service:
+  - Added `POST /api/projects` in `backend/main.py` enabling dynamic addition of new monitored projects.
+  - Automatically derives ML model forecast targets (`predicted_cost_overrun_pct`, `actual_final_cost`, `actual_delay_months`) upon registration.
+  - Interactive "Add New Project" modal in `ProjectExplorerView.tsx` with instant table refresh and persistence into `data/generated/infrastructure_projects.csv`.
+- [x] Automated test suite in `tests/` with 22 passing unit and integration tests (including `tests/test_create_project.py`).
 
 ## 3. Verified Test & Lint Results
-- **pytest**: 21 passed in 4.27s (`100%` pass rate).
+- **pytest**: 22 passed in 8.19s (`100%` pass rate).
 - **ruff**: All checks passed cleanly with zero warnings (`ruff check .`).
 - **Frontend build**: `npm run build` compiled without errors.
 - **FastAPI backend**: Successfully serving requests on `:8001` with reload enabled.

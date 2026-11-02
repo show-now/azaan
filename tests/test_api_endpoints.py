@@ -32,7 +32,7 @@ def test_portfolio_overview_endpoint():
     assert response.status_code == 200
     data = response.json()
     assert "kpis" in data
-    assert data["kpis"]["total_projects"] == 2000
+    assert data["kpis"]["total_projects"] >= 2000
     assert "sector_summary" in data
     assert len(data["sector_summary"]) > 0
     assert "state_distribution" in data

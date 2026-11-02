@@ -5,6 +5,7 @@ import {
   PredictionApiResponse,
   PredictionPayload,
   ProjectsResponse,
+  ProjectRecord,
   WarningsResponse,
   DisasterSimulationPayload,
   DisasterSimulationResult,
@@ -46,6 +47,23 @@ export async function fetchProjects(params: {
 
   const res = await fetch(`${API_BASE}/projects?${searchParams.toString()}`);
   if (!res.ok) throw new Error(`Failed to fetch projects: ${res.statusText}`);
+  return res.json();
+}
+
+export async function createProject(payload: Partial<ProjectRecord>): Promise<{
+  status: string;
+  message: string;
+  project: ProjectRecord;
+}> {
+  const res = await fetch(`${API_BASE}/projects`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const errorBody = await res.json().catch(() => null);
+    throw new Error(errorBody?.detail || `Error creating project: ${res.statusText}`);
+  }
   return res.json();
 }
 
