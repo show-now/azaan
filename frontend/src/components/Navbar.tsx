@@ -23,28 +23,20 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onTabChange }) => {
     { id: 'prediction', label: '3. Risk Prediction', icon: <Calculator className="w-4 h-4" /> },
     { id: 'warnings', label: '4. Early Warnings', icon: <AlertTriangle className="w-4 h-4" /> },
     { id: 'evaluation', label: '5. Model Evaluation', icon: <LineChart className="w-4 h-4" /> },
-    { id: 'disaster', label: '6. Disaster Simulation', icon: <Flame className="w-4 h-4 text-rose-400" /> },
+    { id: 'disaster', label: '6. Disaster Simulation', icon: <Flame className="w-4 h-4 text-rose-500" /> },
   ];
 
   return (
-    <header className="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-50">
+    <header className="border-b border-slate-200 bg-white/95 backdrop-blur sticky top-0 z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo / Branding */}
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-gradient-to-tr from-amber-500 to-indigo-600 rounded-lg shadow-md shadow-indigo-500/20">
+            <div className="p-2 bg-gradient-to-tr from-amber-500 to-indigo-600 rounded-lg shadow-sm">
               <Activity className="w-6 h-6 text-white" />
             </div>
             <div>
-              <div className="flex items-center space-x-2">
-                <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-100 to-indigo-300 bg-clip-text text-transparent">
-                  InfraRisk AI
-                </span>
-                <span className="text-[10px] font-semibold uppercase px-2 py-0.5 bg-indigo-950 text-indigo-400 border border-indigo-800/80 rounded-full">
-                  MoSPI / PAIMANA Prototype
-                </span>
-              </div>
-              <p className="text-xs text-slate-400 font-medium">
+              <p className="text-xs text-slate-500 font-medium">
                 Infrastructure Cost & Delay Early Warning System
               </p>
             </div>
@@ -60,8 +52,8 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onTabChange }) => {
                   onClick={() => onTabChange(item.id)}
                   className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-150 ${
                     active
-                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30 ring-1 ring-indigo-400/30'
-                      : 'text-slate-300 hover:text-white hover:bg-slate-800/80'
+                      ? 'bg-indigo-600 text-white shadow-sm ring-1 ring-indigo-500'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                   }`}
                 >
                   {item.icon}
@@ -75,4 +67,3 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onTabChange }) => {
     </header>
   );
 };
-
