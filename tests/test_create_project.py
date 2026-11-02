@@ -1,7 +1,9 @@
 """Tests for project creation API."""
 
 import uuid
+
 from fastapi.testclient import TestClient
+
 from backend.main import app
 
 client = TestClient(app)
