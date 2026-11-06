@@ -6,10 +6,11 @@ import {
   AlertTriangle, 
   LineChart, 
   Activity,
-  Flame
+  Flame,
+  MapPin
 } from 'lucide-react';
 
-export type TabType = 'overview' | 'explorer' | 'prediction' | 'warnings' | 'evaluation' | 'disaster';
+export type TabType = 'overview' | 'spatial' | 'explorer' | 'prediction' | 'warnings' | 'evaluation' | 'disaster';
 
 interface NavbarProps {
   currentTab: TabType;
@@ -19,11 +20,12 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({ currentTab, onTabChange }) => {
   const navItems: { id: TabType; label: string; icon: React.ReactNode }[] = [
     { id: 'overview', label: '1. Portfolio Overview', icon: <Building2 className="w-4 h-4" /> },
-    { id: 'explorer', label: '2. Project Explorer', icon: <Search className="w-4 h-4" /> },
-    { id: 'prediction', label: '3. Risk Prediction', icon: <Calculator className="w-4 h-4" /> },
-    { id: 'warnings', label: '4. Early Warnings', icon: <AlertTriangle className="w-4 h-4" /> },
-    { id: 'evaluation', label: '5. Model Evaluation', icon: <LineChart className="w-4 h-4" /> },
-    { id: 'disaster', label: '6. Disaster Simulation', icon: <Flame className="w-4 h-4 text-rose-500" /> },
+    { id: 'spatial', label: '2. Spatial GIS & Heatmap', icon: <MapPin className="w-4 h-4 text-emerald-500" /> },
+    { id: 'explorer', label: '3. Project Explorer', icon: <Search className="w-4 h-4" /> },
+    { id: 'prediction', label: '4. Risk Prediction', icon: <Calculator className="w-4 h-4" /> },
+    { id: 'warnings', label: '5. Early Warnings', icon: <AlertTriangle className="w-4 h-4" /> },
+    { id: 'evaluation', label: '6. Model Evaluation', icon: <LineChart className="w-4 h-4" /> },
+    { id: 'disaster', label: '7. Disaster Simulation', icon: <Flame className="w-4 h-4 text-rose-500" /> },
   ];
 
   return (

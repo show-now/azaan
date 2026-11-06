@@ -7,6 +7,7 @@ Runs on port 8001 and interfaces with:
 - Model Evaluation Metrics and Baselines
 """
 
+import hashlib
 import json
 from typing import Any, Dict, List, Optional
 
@@ -155,6 +156,299 @@ def get_portfolio_overview() -> Dict[str, Any]:
         "sector_summary": sector_summary,
         "state_distribution": state_distribution,
         "scatter_progress_vs_delay": scatter_subset.to_dict(orient="records"),
+    }
+
+
+# ==========================================
+# Route 1B: Spatial GIS & Risk Heatmap (/api/spatial/heatmap)
+# ==========================================
+STATE_COORDINATES: Dict[str, Dict[str, Any]] = {
+    "Maharashtra": {
+        "lat": 19.7515,
+        "lng": 75.7139,
+        "terrain": "Western Ghats & Deccan Plateau",
+        "geo_risk": "Moderate Coastal & Ghat Monsoon Inundation",
+        "cluster": "Western Industrial & Port Corridor",
+    },
+    "Uttar Pradesh": {
+        "lat": 26.8467,
+        "lng": 80.9462,
+        "terrain": "Gangetic Alluvial Plain",
+        "geo_risk": "High Right-of-Way Density & Riverbed Siltation",
+        "cluster": "Northern Plains & Freight Corridor",
+    },
+    "Gujarat": {
+        "lat": 22.2587,
+        "lng": 71.1924,
+        "terrain": "Semi-Arid Coast & Extended Gulf Littoral",
+        "geo_risk": "Arabian Sea Cyclones & Soil Saline Ingress",
+        "cluster": "Western Maritime Logistics",
+    },
+    "Tamil Nadu": {
+        "lat": 11.1271,
+        "lng": 78.6569,
+        "terrain": "Coromandel Coastal Plain",
+        "geo_risk": "Northeast Monsoon Surge & Urban Density Bottlenecks",
+        "cluster": "Southern Industrial & Highway Grid",
+    },
+    "Karnataka": {
+        "lat": 15.3173,
+        "lng": 75.7139,
+        "terrain": "Western Ghats Escarpment & Southern Plateau",
+        "geo_risk": "Forest Clearance Review & Slope Stability",
+        "cluster": "Southern Technology & Transport Belt",
+    },
+    "Rajasthan": {
+        "lat": 27.0238,
+        "lng": 74.2179,
+        "terrain": "Thar Desert & Aravalli Belt",
+        "geo_risk": "Severe Thermal Fluctuations & Groundwater Scarcity",
+        "cluster": "Western Inland & Renewable Solar Belt",
+    },
+    "West Bengal": {
+        "lat": 22.9868,
+        "lng": 87.8550,
+        "terrain": "Deltaic Alluvium & Northern Terai",
+        "geo_risk": "High Land Acquisition Density & Monsoon Inundation",
+        "cluster": "Eastern Gateway & Sub-Himalayan Corridor",
+    },
+    "Madhya Pradesh": {
+        "lat": 22.9734,
+        "lng": 78.6569,
+        "terrain": "Central Highlands & Wildlife Corridors",
+        "geo_risk": "Extensive Environmental Clearances & River Crossings",
+        "cluster": "Central Trans-India Transit Core",
+    },
+    "Andhra Pradesh": {
+        "lat": 15.9129,
+        "lng": 79.7400,
+        "terrain": "Eastern Ghats & Coastal Delta Plains",
+        "geo_risk": "Frequent Bay of Bengal Cyclonic Surges",
+        "cluster": "Eastern Coastal Ports & Highway Links",
+    },
+    "Bihar": {
+        "lat": 25.0961,
+        "lng": 85.3131,
+        "terrain": "Middle Gangetic Floodplain",
+        "geo_risk": "Annual Riverine Inundation & Shifting Embankments",
+        "cluster": "Eastern Riverine Plains",
+    },
+    "Odisha": {
+        "lat": 20.9517,
+        "lng": 85.0985,
+        "terrain": "Coastal Strip & Mineral-Rich Highlands",
+        "geo_risk": "High Cyclone Vulnerability & Forest Land Clearances",
+        "cluster": "Eastern Mineral & Port Belt",
+    },
+    "Assam": {
+        "lat": 26.2006,
+        "lng": 92.9376,
+        "terrain": "Brahmaputra Valley & Foothills",
+        "geo_risk": "High Seismic Hazard Zone V & Severe Riverine Floods",
+        "cluster": "Northeast Himalayan Gateway",
+    },
+    "Kerala": {
+        "lat": 10.8505,
+        "lng": 76.2711,
+        "terrain": "Narrow Coastal Strip & High-Gradient Western Ghats",
+        "geo_risk": "Steep Hillside Landslides & Severe Land Acquisition Cost",
+        "cluster": "Southern Coastal Linear Infrastructure",
+    },
+    "Delhi NCR": {
+        "lat": 28.7041,
+        "lng": 77.1025,
+        "terrain": "High-Density Metropolitan River Basin",
+        "geo_risk": "Dense Urban Utility Shifting & RoW Stalemates",
+        "cluster": "National Capital Urban Logistics Ring",
+    },
+    "Jammu & Kashmir": {
+        "lat": 33.7782,
+        "lng": 76.5762,
+        "terrain": "Rugged Himalayan High-Altitude Corridors",
+        "geo_risk": "Extreme Slope Collapses, Avalanches, High Seismicity & Snow Closures",
+        "cluster": "Himalayan Strategic & Tunneling Corridor",
+    },
+}
+
+REGIONAL_SPATIAL_CLUSTERS: List[Dict[str, Any]] = [
+    {
+        "cluster_name": "Himalayan & Fragile Ecology Corridor",
+        "states": ["Jammu & Kashmir", "Assam"],
+        "primary_hazard": "Seismic Zone V, Hill Slope Instability & River Inundation",
+        "delay_multiplier": 1.45,
+        "recommendation": "Require mandatory LiDAR slope audits, flexible rockfall barriers, and winterized concreting schedules.",
+    },
+    {
+        "cluster_name": "Bay of Bengal Cyclone & Delta Belt",
+        "states": ["Odisha", "Andhra Pradesh", "West Bengal", "Tamil Nadu"],
+        "primary_hazard": "Cyclonic Storm Surges, Coastal Embankment Scour & Intense Monsoon Delays",
+        "delay_multiplier": 1.30,
+        "recommendation": "Enforce IRC/BIS marine-grade anti-corrosive concrete indexation and seasonal pre-monsoon pile completions.",
+    },
+    {
+        "cluster_name": "Dense Urban & High RoW Friction Corridor",
+        "states": ["Delhi NCR", "Maharashtra", "Uttar Pradesh", "Bihar"],
+        "primary_hazard": "Severe Land Acquisition Density, Metro Utility Clashes & Multi-Agency Clearances",
+        "delay_multiplier": 1.38,
+        "recommendation": "Deploy PMG fast-track land dispute arbitration and single-window utility shifting escrow deposits.",
+    },
+    {
+        "cluster_name": "Arid & Extended Mineral Transit Belt",
+        "states": ["Rajasthan", "Gujarat", "Madhya Pradesh", "Karnataka"],
+        "primary_hazard": "Extreme Thermal Expansion, Environmental Wildlife Passes & Mineral Corridor Heavy Haul",
+        "delay_multiplier": 1.15,
+        "recommendation": "Standardize polymer-modified bitumen (PMB) and pre-approved eco-sensitive zone (ESZ) viaduct designs.",
+    },
+]
+
+
+def _derive_project_coords(project_id: str, state: str) -> tuple[float, float]:
+    """Deterministically map project ID and state to plausible GPS coordinates within the state."""
+    base = STATE_COORDINATES.get(state, {"lat": 20.5937, "lng": 78.9629})
+    h = int(hashlib.md5(project_id.encode("utf-8")).hexdigest()[:8], 16)
+    # Controlled jitter between -0.8 and +0.8 degrees
+    lat_offset = (((h % 1000) / 1000.0) - 0.5) * 1.6
+    lng_offset = ((((h // 1000) % 1000) / 1000.0) - 0.5) * 1.6
+    return round(base["lat"] + lat_offset, 5), round(base["lng"] + lng_offset, 5)
+
+
+@app.get("/api/spatial/heatmap")
+def get_spatial_heatmap(
+    state: Optional[str] = None,
+    sector: Optional[str] = None,
+    min_risk_level: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Provides GIS spatial heatmap metrics, state-level risk aggregations, and geocoded project pins."""
+    df = load_or_generate_dataset(n_samples=2000, seed=42)
+    warnings_df = evaluate_batch_warnings(df)
+    flagged_ids = set(warnings_df["project_id"].unique()) if not warnings_df.empty else set()
+    warnings_by_proj = (
+        warnings_df.groupby("project_id")["warning_id"].count().to_dict()
+        if not warnings_df.empty
+        else {}
+    )
+
+    # State Aggregations
+    state_metrics = []
+    for st_name, grp in df.groupby("state"):
+        st_str = str(st_name)
+        total_p = len(grp)
+        flagged_count = sum(1 for pid in grp["project_id"] if pid in flagged_ids)
+        total_cost = float(grp["original_cost"].sum())
+        cost_col = "actual_final_cost" if "actual_final_cost" in grp.columns else "original_cost"
+        est_cost = float(grp[cost_col].sum())
+        overrun_cost = max(0.0, est_cost - total_cost)
+        avg_delay = float(grp["actual_delay_months"].mean()) if "actual_delay_months" in grp.columns else 0.0
+        avg_overrun_pct = (overrun_cost / total_cost * 100.0) if total_cost > 0 else 0.0
+        avg_progress = float(grp["physical_progress_pct"].mean())
+        avg_land = float(grp["land_acquisition_pct"].mean())
+        avg_approval_delay = float(grp["approval_delay_months"].mean())
+
+        flagged_rate = (flagged_count / total_p * 100.0) if total_p > 0 else 0.0
+
+        # Composite Spatial Risk Score (0 - 100)
+        risk_score = min(
+            100.0,
+            round(
+                (flagged_rate * 0.40)
+                + (min(avg_overrun_pct, 60.0) * 0.35)
+                + (min(avg_delay, 30.0) / 30.0 * 25.0),
+                1,
+            ),
+        )
+
+        risk_tier = "Critical" if risk_score >= 60.0 else ("Medium" if risk_score >= 35.0 else "Low")
+        geo_info = STATE_COORDINATES.get(
+            st_str,
+            {
+                "lat": 20.5937,
+                "lng": 78.9629,
+                "terrain": "Mixed Terrain",
+                "geo_risk": "Standard Operational Risks",
+                "cluster": "General Regional Logistics",
+            },
+        )
+
+        state_metrics.append({
+            "state": st_str,
+            "lat": geo_info["lat"],
+            "lng": geo_info["lng"],
+            "terrain": geo_info["terrain"],
+            "geo_risk": geo_info["geo_risk"],
+            "cluster": geo_info["cluster"],
+            "project_count": total_p,
+            "flagged_count": flagged_count,
+            "flagged_pct": round(flagged_rate, 1),
+            "total_sanctioned_cost_cr": round(total_cost, 2),
+            "estimated_final_cost_cr": round(est_cost, 2),
+            "overrun_cost_cr": round(overrun_cost, 2),
+            "avg_overrun_pct": round(avg_overrun_pct, 2),
+            "avg_delay_months": round(avg_delay, 1),
+            "avg_progress_pct": round(avg_progress, 1),
+            "avg_land_acquisition_pct": round(avg_land, 1),
+            "avg_approval_delay_months": round(avg_approval_delay, 1),
+            "risk_score": risk_score,
+            "risk_tier": risk_tier,
+        })
+
+    state_metrics.sort(key=lambda x: x["risk_score"], reverse=True)
+
+    # Filter projects for marker layer
+    filtered_df = df.copy()
+    if state and state.strip() and state != "All":
+        filtered_df = filtered_df[filtered_df["state"] == state.strip()]
+    if sector and sector.strip() and sector != "All":
+        filtered_df = filtered_df[filtered_df["sector"] == sector.strip()]
+
+    # Limit markers to top 400 for smooth browser rendering while providing rich coverage
+    markers = []
+    for _, row in filtered_df.head(400).iterrows():
+        pid = str(row["project_id"])
+        st_val = str(row["state"])
+        lat, lng = _derive_project_coords(pid, st_val)
+        c_overrun = float(row.get("cost_overrun_pct", 0.0))
+        d_months = float(row.get("actual_delay_months", 0.0))
+        is_flg = pid in flagged_ids
+        warn_cnt = warnings_by_proj.get(pid, 0)
+
+        # Risk tier calculation
+        if c_overrun >= 25.0 or d_months >= 15.0 or warn_cnt >= 2:
+            tier = "Critical"
+        elif c_overrun >= 10.0 or d_months >= 6.0 or is_flg:
+            tier = "Medium"
+        else:
+            tier = "Low"
+
+        if min_risk_level and min_risk_level != "All":
+            if min_risk_level == "Critical" and tier != "Critical":
+                continue
+            if min_risk_level == "Medium" and tier not in ["Critical", "Medium"]:
+                continue
+
+        markers.append({
+            "project_id": pid,
+            "project_name": str(row["project_name"]),
+            "sector": str(row["sector"]),
+            "state": st_val,
+            "lat": lat,
+            "lng": lng,
+            "original_cost": float(row["original_cost"]),
+            "physical_progress_pct": float(row["physical_progress_pct"]),
+            "cost_overrun_pct": round(c_overrun, 1),
+            "delay_months": round(d_months, 1),
+            "land_acquisition_pct": float(row["land_acquisition_pct"]),
+            "funding_risk": str(row["funding_risk"]),
+            "is_flagged": is_flg,
+            "warning_count": warn_cnt,
+            "risk_tier": tier,
+        })
+
+    return {
+        "total_states": len(state_metrics),
+        "total_markers": len(markers),
+        "state_metrics": state_metrics,
+        "regional_clusters": REGIONAL_SPATIAL_CLUSTERS,
+        "project_markers": markers,
     }
 
 

@@ -204,3 +204,60 @@ export interface DisasterSimulationResult {
   };
 }
 
+export interface StateSpatialMetric {
+  state: string;
+  lat: number;
+  lng: number;
+  terrain: string;
+  geo_risk: string;
+  cluster: string;
+  project_count: number;
+  flagged_count: number;
+  flagged_pct: number;
+  total_sanctioned_cost_cr: number;
+  estimated_final_cost_cr: number;
+  overrun_cost_cr: number;
+  avg_overrun_pct: number;
+  avg_delay_months: number;
+  avg_progress_pct: number;
+  avg_land_acquisition_pct: number;
+  avg_approval_delay_months: number;
+  risk_score: number;
+  risk_tier: 'Critical' | 'Medium' | 'Low';
+}
+
+export interface RegionalSpatialCluster {
+  cluster_name: string;
+  states: string[];
+  primary_hazard: string;
+  delay_multiplier: number;
+  recommendation: string;
+}
+
+export interface ProjectSpatialMarker {
+  project_id: string;
+  project_name: string;
+  sector: string;
+  state: string;
+  lat: number;
+  lng: number;
+  original_cost: number;
+  physical_progress_pct: number;
+  cost_overrun_pct: number;
+  delay_months: number;
+  land_acquisition_pct: number;
+  funding_risk: string;
+  is_flagged: boolean;
+  warning_count: number;
+  risk_tier: 'Critical' | 'Medium' | 'Low';
+}
+
+export interface SpatialHeatmapResponse {
+  total_states: number;
+  total_markers: number;
+  state_metrics: StateSpatialMetric[];
+  regional_clusters: RegionalSpatialCluster[];
+  project_markers: ProjectSpatialMarker[];
+}
+
+

@@ -9,6 +9,7 @@ import {
   WarningsResponse,
   DisasterSimulationPayload,
   DisasterSimulationResult,
+  SpatialHeatmapResponse,
 } from './types';
 
 const API_BASE = '/api';
@@ -115,4 +116,20 @@ export async function runDisasterSimulation(
   }
   return res.json();
 }
+
+export async function fetchSpatialHeatmap(params?: {
+  state?: string;
+  sector?: string;
+  min_risk_level?: string;
+}): Promise<SpatialHeatmapResponse> {
+  const searchParams = new URLSearchParams();
+  if (params?.state && params.state !== 'All') searchParams.append('state', params.state);
+  if (params?.sector && params.sector !== 'All') searchParams.append('sector', params.sector);
+  if (params?.min_risk_level && params.min_risk_level !== 'All') searchParams.append('min_risk_level', params.min_risk_level);
+
+  const res = await fetch(`${API_BASE}/spatial/heatmap?${searchParams.toString()}`);
+  if (!res.ok) throw new Error(`Failed to fetch spatial heatmap: ${res.statusText}`);
+  return res.json();
+}
+
 

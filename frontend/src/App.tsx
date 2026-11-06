@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Navbar, TabType } from './components/Navbar';
 import { PortfolioOverviewView } from './components/PortfolioOverviewView';
+import { SpatialHeatmapView } from './components/SpatialHeatmapView';
 import { ProjectExplorerView } from './components/ProjectExplorerView';
 import { RiskPredictionView } from './components/RiskPredictionView';
 import { EarlyWarningsView } from './components/EarlyWarningsView';
@@ -12,7 +13,7 @@ const STORAGE_KEY = 'infrarisk_active_tab';
 export function App() {
   const [currentTab, setCurrentTab] = useState<TabType>(() => {
     const saved = localStorage.getItem(STORAGE_KEY) as TabType;
-    const validTabs: TabType[] = ['overview', 'explorer', 'prediction', 'warnings', 'evaluation', 'disaster'];
+    const validTabs: TabType[] = ['overview', 'spatial', 'explorer', 'prediction', 'warnings', 'evaluation', 'disaster'];
     return validTabs.includes(saved) ? saved : 'overview';
   });
 
@@ -29,6 +30,7 @@ export function App() {
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {currentTab === 'overview' && <PortfolioOverviewView />}
+        {currentTab === 'spatial' && <SpatialHeatmapView />}
         {currentTab === 'explorer' && <ProjectExplorerView />}
         {currentTab === 'prediction' && <RiskPredictionView />}
         {currentTab === 'warnings' && <EarlyWarningsView />}

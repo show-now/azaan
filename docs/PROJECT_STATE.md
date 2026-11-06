@@ -52,10 +52,17 @@
   - **Quick Scenario Presets**: Added one-click realistic test presets (e.g. *Distressed Coastal Highway*, *On-Track Metro Expansion*, *Delayed Power Transmission*, and historical disaster profiles like *Super Cyclone Phailin*, *Himalayan Cloudburst*, *High-Seismic Fault Shaking*).
   - **Interactive Visual Timeline vs. Progress Tracker**: Live progress-lag diagnostic comparing timeline elapsed % against physical progress %.
   - **Project Explorer Enhancements**: Dynamic quick-view filter pills (All, High Risk, Early Stage), debounced live search, and a deep-dive project inspection drawer modal.
-- [x] Automated test suite in `tests/` with 22 passing unit and integration tests.
+- [x] Interactive GIS & Spatial Risk Heatmap of India (`SpatialHeatmapView.tsx` & `/api/spatial/heatmap`):
+  - **Interactive Leaflet Geo-Map**: Centered on India with CartoDB Positron neutral light basemap and dynamic layer switching (States vs. Individual Pins).
+  - **State-Level Heatmap Hubs**: Circular proportional hubs color-coded by composite risk tier (Critical: &ge;60, Medium: 35-59, Low: &lt;35) with hover tooltips and click-to-zoom.
+  - **Individual Geocoded Project Pins**: Mapped with coordinates, sector badges, cost outlays, predicted overrun, schedule delay, and early warning counts.
+  - **Pin & State Deep-Dive Inspectors**: Interactive side panel detailing terrain topology, primary geo-hazards, statutory clearance bottlenecks, and project telemetry.
+  - **Regional Spatial Multipliers**: Displays 4 distinct geomorphological clusters (Himalayan Corridor 1.45x, Bay of Bengal Cyclone Belt 1.30x, Dense Urban RoW Corridor 1.38x, Arid Mineral Belt 1.15x) with engineering recommendations.
+  - **Interactive Filters**: Dynamic filtering by State, Sector, and AI Risk Severity.
+- [x] Automated test suite in `tests/` with 24 passing unit and integration tests (including `tests/test_spatial.py`).
 
 ## 3. Verified Test & Lint Results
-- **pytest**: 22 passed in 4.26s (`100%` pass rate).
+- **pytest**: 24 passed in 4.81s (`100%` pass rate).
 - **ruff**: All checks passed cleanly with zero warnings (`ruff check .`).
 - **Frontend build**: `npm run build` compiled without errors.
 - **FastAPI backend**: Successfully serving requests on `:8001` with reload enabled.
