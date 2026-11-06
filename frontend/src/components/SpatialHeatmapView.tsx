@@ -103,12 +103,14 @@ export const SpatialHeatmapView: React.FC = () => {
 
       L.control.zoom({ position: 'topright' }).addTo(map);
 
-      // Clean, professional CartoDB Positron basemap tiles (accessible, neutral light theme)
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
-        subdomains: 'abcd',
-        maxZoom: 19,
-      }).addTo(map);
+      // Clean, high-resolution Esri World Light Gray Canvas & Street Map basemap tiles (100% free, no API key required)
+      L.tileLayer(
+        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+        {
+          attribution: 'Tiles &copy; Esri &mdash; National Geographic, DeLorme, NAVTEQ',
+          maxZoom: 18,
+        }
+      ).addTo(map);
 
       stateLayerGroupRef.current = L.layerGroup().addTo(map);
       projectLayerGroupRef.current = L.layerGroup().addTo(map);
