@@ -151,7 +151,27 @@ export const ModelEvaluationView: React.FC = () => {
                     contentStyle={{ backgroundColor: '#ffffff', borderColor: '#cbd5e1', borderRadius: '8px', fontSize: '11px', color: '#0f172a' }}
                     formatter={(val: any) => [`${Number(val).toFixed(2)}%`]}
                   />
-                  <Scatter name="Test Projects" data={evaluation_charts.model_a} fill="#4f46e5" />
+                  <Scatter 
+                    name="Test Projects" 
+                    data={evaluation_charts.model_a} 
+                    fill="#4f46e5" 
+                    isAnimationActive={true}
+                    animationDuration={1100}
+                    animationEasing="ease-out"
+                    shape={(props: any) => {
+                      const { cx, cy } = props;
+                      return (
+                        <circle 
+                          cx={cx} 
+                          cy={cy} 
+                          r={4} 
+                          className="animated-scatter-point"
+                          fill="#4f46e5" 
+                          fillOpacity={0.8}
+                        />
+                      );
+                    }}
+                  />
                 </ScatterChart>
               </ResponsiveContainer>
             </div>
@@ -218,7 +238,27 @@ export const ModelEvaluationView: React.FC = () => {
                     contentStyle={{ backgroundColor: '#ffffff', borderColor: '#cbd5e1', borderRadius: '8px', fontSize: '11px', color: '#0f172a' }}
                     formatter={(val: any) => [`${Number(val).toFixed(1)} Months`]}
                   />
-                  <Scatter name="Test Projects" data={evaluation_charts.model_b} fill="#0284c7" />
+                  <Scatter 
+                    name="Test Projects" 
+                    data={evaluation_charts.model_b} 
+                    fill="#0284c7" 
+                    isAnimationActive={true}
+                    animationDuration={1100}
+                    animationEasing="ease-out"
+                    shape={(props: any) => {
+                      const { cx, cy } = props;
+                      return (
+                        <circle 
+                          cx={cx} 
+                          cy={cy} 
+                          r={4} 
+                          className="animated-scatter-point"
+                          fill="#0284c7" 
+                          fillOpacity={0.8}
+                        />
+                      );
+                    }}
+                  />
                 </ScatterChart>
               </ResponsiveContainer>
             </div>

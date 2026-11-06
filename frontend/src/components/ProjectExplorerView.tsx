@@ -7,10 +7,18 @@ import {
   Download, 
   ChevronLeft, 
   ChevronRight, 
-  PlusCircle,
-  X,
-  CheckCircle2,
-  AlertCircle
+  PlusCircle, 
+  X, 
+  CheckCircle2, 
+  AlertCircle,
+  Eye,
+  SlidersHorizontal,
+  ArrowUpDown,
+  Building2,
+  Calendar,
+  IndianRupee,
+  Activity,
+  Layers
 } from 'lucide-react';
 
 export const ProjectExplorerView: React.FC = () => {
@@ -26,6 +34,12 @@ export const ProjectExplorerView: React.FC = () => {
   const [selectedRisk, setSelectedRisk] = useState<string[]>([]);
   const [minProgress, setMinProgress] = useState(0);
   const [maxProgress, setMaxProgress] = useState(100);
+
+  // Quick preset filter
+  const [activeFilterPreset, setActiveFilterPreset] = useState<'all' | 'distressed' | 'high_capital' | 'recent'>('all');
+
+  // Selected project for inspection drawer
+  const [selectedProject, setSelectedProject] = useState<ProjectRecord | null>(null);
 
   // New Project Modal State
   const [showAddModal, setShowAddModal] = useState(false);
@@ -84,10 +98,37 @@ export const ProjectExplorerView: React.FC = () => {
     loadData();
   }, [page, selectedSectors, selectedStates, selectedRisk, minProgress, maxProgress]);
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  // Debounced search when user types
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPage(0);
+      loadData();
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const handleFilterPreset = (preset: 'all' | 'distressed' | 'high_capital' | 'recent') => {
+    setActiveFilterPreset(preset);
     setPage(0);
-    loadData();
+    if (preset === 'all') {
+      setSelectedRisk([]);
+      setMinProgress(0);
+      setMaxProgress(100);
+      setSearch('');
+    } else if (preset === 'distressed') {
+      setSelectedRisk(['High']);
+      setMinProgress(0);
+      setMaxProgress(60);
+    } else if (preset === 'high_capital') {
+      setSelectedRisk([]);
+      setMinProgress(0);
+      setMaxProgress(100);
+      // Trigger search filter
+    } else if (preset === 'recent') {
+      setMinProgress(0);
+      setMaxProgress(30);
+      setSelectedRisk([]);
+    }
   };
 
   const handleCreateSubmit = async (e: React.FormEvent) => {
@@ -158,14 +199,18 @@ export const ProjectExplorerView: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-5 gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-4 gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center space-x-2">
-            <Search className="w-6 h-6 text-indigo-600" />
-            <span>Interactive Project Explorer & Inspector</span>
-          </h1>
+          <div className="flex items-center space-x-2">
+            <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
+              <Search className="w-5 h-5" />
+            </div>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+              Interactive Project Explorer & Inspector
+            </h1>
+          </div>
           <p className="text-sm text-slate-500 mt-1">
-            Search, filter, inspect indicators, and download records across monitored infrastructure investments.
+            Search, filter, inspect indicators, view deep-dive project audits, and register monitored assets.
           </p>
         </div>
         <div className="flex items-center space-x-2">
@@ -186,38 +231,98 @@ export const ProjectExplorerView: React.FC = () => {
         </div>
       </div>
 
+      {/* Dynamic Filter Pills */}
+      <div className="flex items-center space-x-2 overflow-x-auto pb-1 text-xs">
+        <span className="text-slate-500 font-semibold uppercase tracking-wider text-[11px] flex items-center space-x-1 shrink-0">
+          <SlidersHorizontal className="w-3.5 h-3.5" />
+          <span>Quick Views:</span>
+        </span>
+        <button
+          onClick={() => handleFilterPreset('all')}
+          className={`px-3 py-1.5 rounded-full font-medium transition shrink-0 ${
+            activeFilterPreset === 'all'
+              ? 'bg-indigo-600 text-white shadow-sm'
+              : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+          }`}
+        >
+          All Projects ({totalMatched.toLocaleString()})
+        </button>
+        <button
+          onClick={() => handleFilterPreset('distressed')}
+          className={`px-3 py-1.5 rounded-full font-medium transition shrink-0 ${
+            activeFilterPreset === 'distressed'
+              ? 'bg-rose-600 text-white shadow-sm'
+              : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+          }`}
+        >
+          High Risk & Lagging (&lt;60% progress)
+        </button>
+        <button
+          onClick={() => handleFilterPreset('recent')}
+          className={`px-3 py-1.5 rounded-full font-medium transition shrink-0 ${
+            activeFilterPreset === 'recent'
+              ? 'bg-indigo-600 text-white shadow-sm'
+              : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+          }`}
+        >
+          Early Stage (&lt;30% progress)
+        </button>
+      </div>
+
       {/* Main Layout: Left Filters, Right Table */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
         {/* Left Filter Sidebar */}
-        <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-6 shadow-sm h-fit">
-          <div className="flex items-center space-x-2 text-slate-900 font-semibold text-sm border-b border-slate-200 pb-3">
-            <Filter className="w-4 h-4 text-indigo-600" />
-            <span>Filter Criteria</span>
+        <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-5 shadow-sm h-fit">
+          <div className="flex items-center justify-between text-slate-900 font-semibold text-sm border-b border-slate-200 pb-3">
+            <span className="flex items-center space-x-2">
+              <Filter className="w-4 h-4 text-indigo-600" />
+              <span>Filter Criteria</span>
+            </span>
+            {(selectedSectors.length > 0 || selectedRisk.length > 0 || search || minProgress > 0 || maxProgress < 100) && (
+              <button
+                onClick={() => {
+                  setSearch('');
+                  setSelectedSectors([]);
+                  setSelectedStates([]);
+                  setSelectedRisk([]);
+                  setMinProgress(0);
+                  setMaxProgress(100);
+                  setActiveFilterPreset('all');
+                  setPage(0);
+                }}
+                className="text-[11px] text-indigo-600 hover:underline font-normal"
+              >
+                Reset
+              </button>
+            )}
           </div>
 
-          {/* Search Query */}
+          {/* Instant Search Query */}
           <div>
-            <label className="text-xs font-medium text-slate-700 block mb-1.5">Project ID or Title</label>
-            <form onSubmit={handleSearchSubmit} className="flex space-x-2">
+            <label className="text-xs font-semibold text-slate-700 block mb-1.5">Live Search</label>
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
               <input
                 type="text"
-                placeholder="e.g. PRJ-IN-01005"
+                placeholder="Search ID, name, corridor..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600"
               />
-              <button
-                type="submit"
-                className="px-2.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-white text-xs font-medium transition"
-              >
-                Go
-              </button>
-            </form>
+              {search && (
+                <button
+                  onClick={() => setSearch('')}
+                  className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 text-xs"
+                >
+                  &times;
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Funding Risk Level */}
           <div>
-            <label className="text-xs font-medium text-slate-700 block mb-2">Funding Risk Level</label>
+            <label className="text-xs font-semibold text-slate-700 block mb-2">Funding Risk Level</label>
             <div className="flex flex-wrap gap-1.5">
               {['Low', 'Medium', 'High'].map((risk) => {
                 const active = selectedRisk.includes(risk);
@@ -225,9 +330,9 @@ export const ProjectExplorerView: React.FC = () => {
                   <button
                     key={risk}
                     onClick={() => toggleRisk(risk)}
-                    className={`px-2.5 py-1 rounded text-xs font-medium border transition ${
+                    className={`px-3 py-1 rounded-full text-xs font-medium border transition ${
                       active
-                        ? 'bg-indigo-600 border-indigo-600 text-white'
+                        ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm'
                         : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
                     }`}
                   >
@@ -238,11 +343,11 @@ export const ProjectExplorerView: React.FC = () => {
             </div>
           </div>
 
-          {/* Physical Progress Range */}
+          {/* Physical Progress Range Slider */}
           <div>
-            <div className="flex justify-between items-center text-xs font-medium text-slate-700 mb-2">
+            <div className="flex justify-between items-center text-xs font-semibold text-slate-700 mb-2">
               <span>Physical Progress</span>
-              <span className="text-indigo-600 font-bold">{minProgress}% - {maxProgress}%</span>
+              <span className="text-indigo-600 font-bold font-mono">{minProgress}% - {maxProgress}%</span>
             </div>
             <div className="space-y-2">
               <input
@@ -254,7 +359,7 @@ export const ProjectExplorerView: React.FC = () => {
                   const val = Number(e.target.value);
                   if (val <= maxProgress) setMinProgress(val);
                 }}
-                className="w-full accent-indigo-600"
+                className="w-full accent-indigo-600 cursor-pointer"
               />
               <input
                 type="range"
@@ -265,23 +370,23 @@ export const ProjectExplorerView: React.FC = () => {
                   const val = Number(e.target.value);
                   if (val >= minProgress) setMaxProgress(val);
                 }}
-                className="w-full accent-indigo-600"
+                className="w-full accent-indigo-600 cursor-pointer"
               />
             </div>
           </div>
 
-          {/* Sectors */}
+          {/* Sectors Checkboxes */}
           {meta?.sectors && (
             <div>
-              <label className="text-xs font-medium text-slate-700 block mb-2">Sectors</label>
-              <div className="max-h-40 overflow-y-auto space-y-1 pr-1 text-xs">
+              <label className="text-xs font-semibold text-slate-700 block mb-2">Infrastructure Sectors</label>
+              <div className="max-h-48 overflow-y-auto space-y-1 pr-1 text-xs">
                 {meta.sectors.map((sec) => (
-                  <label key={sec} className="flex items-center space-x-2 text-slate-600 hover:text-slate-900 cursor-pointer">
+                  <label key={sec} className="flex items-center space-x-2 text-slate-600 hover:text-slate-900 cursor-pointer p-1 rounded hover:bg-slate-50 transition">
                     <input
                       type="checkbox"
                       checked={selectedSectors.includes(sec)}
                       onChange={() => toggleSector(sec)}
-                      className="rounded border-slate-300 text-indigo-600 focus:ring-0"
+                      className="rounded border-slate-300 text-indigo-600 focus:ring-0 cursor-pointer"
                     />
                     <span className="truncate">{sec}</span>
                   </label>
@@ -289,22 +394,6 @@ export const ProjectExplorerView: React.FC = () => {
               </div>
             </div>
           )}
-
-          {/* Reset Filters */}
-          <button
-            onClick={() => {
-              setSearch('');
-              setSelectedSectors([]);
-              setSelectedStates([]);
-              setSelectedRisk([]);
-              setMinProgress(0);
-              setMaxProgress(100);
-              setPage(0);
-            }}
-            className="w-full py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition"
-          >
-            Clear All Filters
-          </button>
         </div>
 
         {/* Right Data Table */}
@@ -314,7 +403,7 @@ export const ProjectExplorerView: React.FC = () => {
               Showing <strong className="text-slate-900">{projects.length}</strong> of{' '}
               <strong className="text-indigo-600">{totalMatched.toLocaleString()}</strong> matched projects
             </span>
-            <span className="font-mono">Page {page + 1} of {totalPages}</span>
+            <span className="font-mono text-slate-400">Page {page + 1} of {totalPages}</span>
           </div>
 
           <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
@@ -325,24 +414,25 @@ export const ProjectExplorerView: React.FC = () => {
                     <th className="py-3 px-4">Project ID & Title</th>
                     <th className="py-3 px-3">Sector</th>
                     <th className="py-3 px-3">State</th>
-                    <th className="py-3 px-3 text-right">Sanctioned (₹ Cr)</th>
+                    <th className="py-3 px-3 text-right">Sanctioned</th>
                     <th className="py-3 px-3 text-right">Progress</th>
                     <th className="py-3 px-3 text-right">Elapsed</th>
                     <th className="py-3 px-3 text-center">Funding Risk</th>
                     <th className="py-3 px-3 text-right">Overrun %</th>
+                    <th className="py-3 px-3 text-center">Audit</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {loading ? (
                     <tr>
-                      <td colSpan={8} className="py-12 text-center text-slate-500">
+                      <td colSpan={9} className="py-12 text-center text-slate-500">
                         <div className="inline-block w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin mb-2"></div>
                         <p>Filtering project records...</p>
                       </td>
                     </tr>
                   ) : projects.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="py-12 text-center text-slate-500">
+                      <td colSpan={9} className="py-12 text-center text-slate-500">
                         No projects match the active filter criteria.
                       </td>
                     </tr>
@@ -350,21 +440,30 @@ export const ProjectExplorerView: React.FC = () => {
                     projects.map((p) => {
                       const isHighOverrun = (p.cost_overrun_pct ?? 0) >= 10;
                       return (
-                        <tr key={p.project_id} className="hover:bg-slate-50/80 transition">
+                        <tr 
+                          key={p.project_id} 
+                          onClick={() => setSelectedProject(p)}
+                          className="hover:bg-indigo-50/40 cursor-pointer transition group"
+                        >
                           <td className="py-3 px-4">
-                            <div className="font-semibold text-slate-900">{p.project_name}</div>
-                            <div className="text-[10px] font-mono text-indigo-600">{p.project_id}</div>
+                            <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition">{p.project_name}</div>
+                            <div className="text-[10px] font-mono text-slate-400">{p.project_id}</div>
                           </td>
                           <td className="py-3 px-3 text-slate-700">{p.sector}</td>
                           <td className="py-3 px-3 text-slate-500">{p.state}</td>
                           <td className="py-3 px-3 text-right font-mono font-medium text-slate-800">
-                            ₹ {p.original_cost.toLocaleString()}
+                            ₹ {p.original_cost.toLocaleString()} Cr
                           </td>
                           <td className="py-3 px-3 text-right">
-                            <span className="font-semibold text-emerald-600">{p.physical_progress_pct}%</span>
+                            <div className="flex items-center justify-end space-x-1.5">
+                              <div className="w-12 bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                                <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${p.physical_progress_pct}%` }} />
+                              </div>
+                              <span className="font-semibold text-emerald-600 font-mono">{p.physical_progress_pct}%</span>
+                            </div>
                           </td>
                           <td className="py-3 px-3 text-right text-slate-500 font-mono">
-                            {p.elapsed_months} / {p.planned_duration_months} mo
+                            {p.elapsed_months}/{p.planned_duration_months} mo
                           </td>
                           <td className="py-3 px-3 text-center">
                             <span
@@ -381,12 +480,24 @@ export const ProjectExplorerView: React.FC = () => {
                           </td>
                           <td className="py-3 px-3 text-right font-mono font-bold">
                             {p.cost_overrun_pct !== undefined ? (
-                              <span className={isHighOverrun ? 'text-rose-600' : 'text-slate-700'}>
+                              <span className={isHighOverrun ? 'text-rose-600 font-bold' : 'text-slate-700'}>
                                 {p.cost_overrun_pct > 0 ? `+${p.cost_overrun_pct}%` : `${p.cost_overrun_pct}%`}
                               </span>
                             ) : (
                               <span className="text-slate-400">—</span>
                             )}
+                          </td>
+                          <td className="py-3 px-3 text-center">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedProject(p);
+                              }}
+                              className="p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition"
+                              title="Inspect Project Indicators"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
                           </td>
                         </tr>
                       );
@@ -423,6 +534,91 @@ export const ProjectExplorerView: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Interactive Project Inspection Slide-over / Modal */}
+      {selectedProject && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-xl p-6 shadow-2xl space-y-5 my-8 text-slate-800">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <div>
+                <div className="text-[11px] font-mono text-indigo-600 font-bold">{selectedProject.project_id}</div>
+                <h3 className="text-base font-bold text-slate-900 mt-0.5">{selectedProject.project_name}</h3>
+              </div>
+              <button
+                onClick={() => setSelectedProject(null)}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                <div className="text-slate-500 text-[11px]">Sector & Jurisdiction</div>
+                <div className="font-bold text-slate-900 mt-0.5">{selectedProject.sector}</div>
+                <div className="text-slate-600 mt-0.5">{selectedProject.state}</div>
+              </div>
+
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                <div className="text-slate-500 text-[11px]">Sanctioned Outlay</div>
+                <div className="font-bold text-slate-900 mt-0.5 font-mono text-base">
+                  ₹ {selectedProject.original_cost.toLocaleString()} Cr
+                </div>
+                <div className="text-slate-500 text-[11px] mt-0.5">
+                  Est. Final: ₹ {selectedProject.actual_final_cost?.toLocaleString() || selectedProject.original_cost.toLocaleString()} Cr
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3 text-xs border-t border-slate-200 pt-4">
+              <h4 className="font-bold text-slate-900 uppercase text-[11px] tracking-wider">
+                Monitoring Status Indicators
+              </h4>
+              
+              <div className="grid grid-cols-3 gap-2.5 text-center">
+                <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
+                  <div className="text-slate-500 text-[10px]">Physical Progress</div>
+                  <div className="font-bold text-emerald-600 text-sm mt-0.5">{selectedProject.physical_progress_pct}%</div>
+                </div>
+                <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
+                  <div className="text-slate-500 text-[10px]">Land Acquisition</div>
+                  <div className="font-bold text-slate-900 text-sm mt-0.5">{selectedProject.land_acquisition_pct}%</div>
+                </div>
+                <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
+                  <div className="text-slate-500 text-[10px]">Clearance Delays</div>
+                  <div className="font-bold text-amber-600 text-sm mt-0.5">{selectedProject.approval_delay_months} Mo</div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2.5 text-center">
+                <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
+                  <div className="text-slate-500 text-[10px]">Elapsed Timeline</div>
+                  <div className="font-bold text-slate-900 text-xs mt-0.5">
+                    {selectedProject.elapsed_months}/{selectedProject.planned_duration_months} mo
+                  </div>
+                </div>
+                <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
+                  <div className="text-slate-500 text-[10px]">Contractor Changes</div>
+                  <div className="font-bold text-slate-900 text-xs mt-0.5">{selectedProject.contractor_changes}</div>
+                </div>
+                <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
+                  <div className="text-slate-500 text-[10px]">Funding Risk</div>
+                  <div className="font-bold text-slate-900 text-xs mt-0.5">{selectedProject.funding_risk}</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end space-x-2 border-t border-slate-200 pt-3">
+              <button
+                onClick={() => setSelectedProject(null)}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition"
+              >
+                Close Audit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Add Project Modal */}
       {showAddModal && (

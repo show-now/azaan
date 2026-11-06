@@ -47,10 +47,15 @@
   - Added `POST /api/projects` in `backend/main.py` enabling dynamic addition of new monitored projects.
   - Automatically derives ML model forecast targets (`predicted_cost_overrun_pct`, `actual_final_cost`, `actual_delay_months`) upon registration.
   - Interactive "Add New Project" modal in `ProjectExplorerView.tsx` with instant table refresh and persistence into `data/generated/infrastructure_projects.csv`.
-- [x] Automated test suite in `tests/` with 22 passing unit and integration tests (including `tests/test_create_project.py`).
+- [x] UI/UX Ease of Use & Dynamic Simulation Enhancements:
+  - **Live Auto-Update**: Real-time reactive inference across both Risk Prediction and Natural Disaster Simulation (slider and dropdown changes instantly recalculate without needing to manually click submit).
+  - **Quick Scenario Presets**: Added one-click realistic test presets (e.g. *Distressed Coastal Highway*, *On-Track Metro Expansion*, *Delayed Power Transmission*, and historical disaster profiles like *Super Cyclone Phailin*, *Himalayan Cloudburst*, *High-Seismic Fault Shaking*).
+  - **Interactive Visual Timeline vs. Progress Tracker**: Live progress-lag diagnostic comparing timeline elapsed % against physical progress %.
+  - **Project Explorer Enhancements**: Dynamic quick-view filter pills (All, High Risk, Early Stage), debounced live search, and a deep-dive project inspection drawer modal.
+- [x] Automated test suite in `tests/` with 22 passing unit and integration tests.
 
 ## 3. Verified Test & Lint Results
-- **pytest**: 22 passed in 8.19s (`100%` pass rate).
+- **pytest**: 22 passed in 4.26s (`100%` pass rate).
 - **ruff**: All checks passed cleanly with zero warnings (`ruff check .`).
 - **Frontend build**: `npm run build` compiled without errors.
 - **FastAPI backend**: Successfully serving requests on `:8001` with reload enabled.

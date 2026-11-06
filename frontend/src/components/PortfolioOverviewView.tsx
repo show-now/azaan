@@ -169,8 +169,24 @@ export const PortfolioOverviewView: React.FC = () => {
                 formatter={(value: any) => [`₹ ${Number(value).toLocaleString()} Cr`]}
               />
               <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '12px' }} />
-              <Bar dataKey="original_cost" name="Sanctioned Baseline" fill="#4f46e5" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="estimated_final_cost" name="Estimated Final Cost" fill="#ef4444" radius={[4, 4, 0, 0]} />
+              <Bar 
+                dataKey="original_cost" 
+                name="Sanctioned Baseline" 
+                fill="#4f46e5" 
+                radius={[6, 6, 0, 0]}
+                isAnimationActive={true}
+                animationDuration={1200}
+                animationEasing="ease-out"
+              />
+              <Bar 
+                dataKey="estimated_final_cost" 
+                name="Estimated Final Cost" 
+                fill="#ef4444" 
+                radius={[6, 6, 0, 0]}
+                isAnimationActive={true}
+                animationDuration={1500}
+                animationEasing="ease-out"
+              />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -234,13 +250,17 @@ export const PortfolioOverviewView: React.FC = () => {
                   name="Projects" 
                   data={scatter_progress_vs_delay} 
                   fill="#4f46e5"
+                  isAnimationActive={true}
+                  animationDuration={1000}
+                  animationEasing="ease-out"
                   shape={(props: any) => {
                     const { cx, cy, payload } = props;
                     return (
                       <circle 
                         cx={cx} 
                         cy={cy} 
-                        r={4} 
+                        r={4.5} 
+                        className="animated-scatter-point"
                         fill={payload.is_flagged ? '#ef4444' : '#4f46e5'} 
                         fillOpacity={0.85}
                       />
